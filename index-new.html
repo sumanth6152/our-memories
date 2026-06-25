@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tap for Memories! ✨</title>
+    <style>
+        :root {
+            --primary-color: #ff6b6b;
+            --bg-color: #0f172a; /* Deep elegant dark background to make media pop */
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* Prevents double-tap zooming on phones so tapping feels instant */
+            touch-action: manipulation; 
+        }
+
+        /* Ambient instructions in the center */
+        .instruction-layer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 0;
+            pointer-events: none; /* Allows clicks to pass through to the body */
+            width: 90%;
+        }
+
+        .instruction-layer h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            text-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .instruction-layer p {
+            font-size: 1.2rem;
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Style for the dynamically spawned photos/videos */
+        .spawned-media {
+            position: absolute;
+            max-width: 280px;
+            max-height: 280px;
+            border: 8px solid white;
+            border-bottom: 24px solid white; /* Polaroid style framing */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            pointer-events: auto;
+            z-index: 10;
+            transform: translate(-50%, -50%) scale(0);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            background: white;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: move;
+        }
+
+        video.spawned-media {
+            padding-bottom: 0;
+            border-bottom: 8px solid white; /* Regular frame for videos */
+        }
+
+        @keyframes popIn {
+            to { transform: translate(-50%, -50%) scale(1) rotate(var(--r)); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="instruction-layer">
+        <h1>11 Years of Memories 🎬</h1>
+        <p>Tap absolutely anywhere on the screen...</p>
+    </div>
+
+    <script>
+        // 1. ADD YOUR PHOTOS AND VIDEOS HERE
+        // Put the exact filenames of the media you upload to GitHub.
+        const memoryPool = [
+            { type: 'image', url: 'pic1.jpg' },
+            { type: 'image', url: 'pic2.png' },
+            { type: 'image', url: 'pic3.jpg' },
+            // For videos, make sure they are web-compatible (.mp4)
+            { type: 'video', url: 'video1.mp4' },
+            { type: 'video', url: 'video2.mp4' }
+        ];
+
+        let currentIndex = 0;
+
+        // Shuffle the array so it's a surprise order every time the site opens
+        memoryPool.sort(() => Math.random() - 0.5);
+
+        // Listen for taps/clicks anywhere on the page
+        document.body.addEventListener('click', function(e) {
+            if (memoryPool.length === 0) return;
+
+            // Get coordinates of the tap
+            const x = e.pageX;
+            const y = e.pageY;
+
+            // Get current asset from the loop
+            const currentAsset = memoryPool[currentIndex];
+            
+            let mediaElement;
+
+            if (currentAsset.type === 'image') {
+                mediaElement = document.createElement('img');
+                mediaElement.src = currentAsset.url;
+            } else if (currentAsset.type === 'video') {
+                mediaElement = document.createElement('video');
+                mediaElement.src = currentAsset.url;
+                mediaElement.autoplay = true;
+                mediaElement.loop = true;
+                mediaElement.muted = true; // Muted by default so browsers allow autoplay
+                mediaElement.playsInline = true; 
+            }
+
+            // Apply styles and randomized rotation
+            mediaElement.classList.add('spawned-media');
+            const randomRotation = Math.floor(Math.random() * 30) - 15; // Between -15 and 15 degrees
+            mediaElement.style.setProperty('--r', `${randomRotation}deg`);
+            mediaElement.style.left = `${x}px`;
+            mediaElement.style.top = `${y}px`;
+
+            // Give it a progressive z-index so newer taps are always on top
+            mediaElement.style.zIndex = document.querySelectorAll('.spawned-media').length + 10;
+
+            // Append to body
+            document.body.appendChild(mediaElement);
+
+            // Cycle to the next memory asset
+            currentIndex = (currentIndex + 1) % memoryPool.length;
+        });
+    </script>
+</body>
+</html>
